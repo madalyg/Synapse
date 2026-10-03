@@ -30,7 +30,7 @@ Groq (importance JSON) ──► merge + fallback keywords
 | `REACT_APP_GROQ_KEY` | Bearer token (demo: client-side; production should proxy on a backend) |
 | `REACT_APP_GROQ_MODEL` | Optional; default `llama-3.3-70b-versatile` |
 
-Implementation: `shared/llm/groqClient.js`
+Implementation: `src/llm/groqClient.js`
 
 - **System prompt:** `You output strict minified JSON only.`
 - **Temperature:** `0.2` (reduce creative drift on schema-bound tasks)

@@ -20,7 +20,7 @@ Structured Groq calls (not a chat wrapper): system prompt, temperature `0.2`, sc
 | [docs/prompt-changelog.md](./docs/prompt-changelog.md) | v0 spec → v1 shipped prompts |
 | [docs/hackathon-origin.md](./docs/hackathon-origin.md) | Event context, stack, team learnings |
 | [prompts/](./prompts/) | Per-workflow prompt design notes |
-| [shared/llm/](./shared/llm/) | `groqClient.js`, `prompts.js` |
+| [src/llm/](./src/llm/) | `groqClient.js`, `prompts.js` |
 
 ```bash
 npm run test:llm   # JSON parse / fence regression

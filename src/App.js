@@ -1,10 +1,10 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { fetchGroqJson } from "../shared/llm/groqClient";
+import { fetchGroqJson } from "./llm/groqClient";
 import {
   buildCalendarSchedulingPrompt,
   buildCoachSuggestionPrompt,
   buildImportanceScoringPrompt,
-} from "../shared/llm/prompts";
+} from "./llm/prompts";
 
 // ─── Google API scopes ────────────────────────────────────────────────────────
 const GOOGLE_TASKS_SCOPE = "https://www.googleapis.com/auth/tasks";

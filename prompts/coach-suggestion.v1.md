@@ -16,4 +16,4 @@ Examples we asked the model to emulate (paraphrased in prompt via JSON task/quad
 
 ## User message (template)
 
-See `buildCoachSuggestionPrompt()` in `shared/llm/prompts.js`.
+See `buildCoachSuggestionPrompt()` in `src/llm/prompts.js`.

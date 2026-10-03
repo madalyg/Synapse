@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import {
   parseJsonFromLlmContent,
-} from "../shared/llm/groqClient.js";
+} from "../src/llm/groqClient.js";
 
 assert.deepEqual(parseJsonFromLlmContent('{"a":1}'), { a: 1 });
 

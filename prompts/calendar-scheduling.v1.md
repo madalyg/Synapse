@@ -12,4 +12,4 @@
 
 ## User message (template)
 
-See `buildCalendarSchedulingPrompt()` in `shared/llm/prompts.js`.
+See `buildCalendarSchedulingPrompt()` in `src/llm/prompts.js`.

@@ -25,7 +25,7 @@ Shared settings:
 
 - Calendar: **top-8 task cap**, **15s timeout**, local overlap validator
 - All flows: keyword **fallback importance** when Groq errors or omits a task id
-- Extracted prompts to `shared/llm/prompts.js` + this documentation for review and hiring/portfolio visibility
+- Extracted prompts to `src/llm/prompts.js` + this documentation
 
 ## Planned (not implemented)
 

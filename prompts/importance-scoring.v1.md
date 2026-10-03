@@ -11,7 +11,7 @@
 
 ## User message (template)
 
-See `buildImportanceScoringPrompt()` in `shared/llm/prompts.js`.
+See `buildImportanceScoringPrompt()` in `src/llm/prompts.js`.
 
 ## Context budget
 
