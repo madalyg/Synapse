@@ -1,10 +1,15 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { fetchGroqJson } from "../shared/llm/groqClient";
+import {
+  buildCalendarSchedulingPrompt,
+  buildCoachSuggestionPrompt,
+  buildImportanceScoringPrompt,
+} from "../shared/llm/prompts";
 
 // ─── Google API scopes ────────────────────────────────────────────────────────
 const GOOGLE_TASKS_SCOPE = "https://www.googleapis.com/auth/tasks";
 const GOOGLE_CALENDAR_SCOPE = "https://www.googleapis.com/auth/calendar";
 const GOOGLE_COMBINED_SCOPE = `${GOOGLE_TASKS_SCOPE} ${GOOGLE_CALENDAR_SCOPE}`;
-const GROQ_ENDPOINT = "https://api.groq.com/openai/v1/chat/completions";
 
 // ─── Calendar display constants ───────────────────────────────────────────────
 const CAL_START_HOUR = 0; // midnight
@@ -258,34 +263,6 @@ function calendarEventFromGoogleEvent(gEvent, weekStart) {
     endMinute: endDate.getHours() * 60 + endDate.getMinutes(),
     source: "google",
   };
-}
-
-// ─── Groq helper ─────────────────────────────────────────────────────────────
-async function fetchGroqJson(promptText, apiKey) {
-  const response = await fetch(GROQ_ENDPOINT, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-    body: JSON.stringify({
-      model: "llama-3.3-70b-versatile",
-      temperature: 0.2,
-      messages: [
-        { role: "system", content: "You output strict minified JSON only." },
-        { role: "user", content: promptText },
-      ],
-    }),
-  });
-  if (!response.ok) {
-    const text = await response.text();
-    throw new Error(`Groq error ${response.status}: ${text}`);
-  }
-  const data = await response.json();
-  const content = data.choices?.[0]?.message?.content?.trim();
-  if (!content) throw new Error("Groq returned empty content.");
-  const unfenced = content
-    .replace(/^```(?:json)?\s*/i, "")
-    .replace(/\s*```$/i, "")
-    .trim();
-  return JSON.parse(unfenced);
 }
 
 // ─── Sub-component: WeeklyCalendar ───────────────────────────────────────────
@@ -950,27 +927,12 @@ function App() {
         busy: blocks.map((b) => `${minutesToDisplay(b.startMinute)}–${minutesToDisplay(b.endMinute)}`),
       }));
 
-      const prompt = `
-You are a scheduling assistant. Follow this exactly! Return ONLY strict minified JSON in this exact shape:
-{"suggestions":[{"taskId":"string","taskTitle":"string","day":0,"startMinute":540,"endMinute":660,"reason":"short sentence"}]}
-
-Rules:
-- day is 0=Sunday through 6=Saturday
-- startMinute and endMinute are minutes from midnight (e.g. 9:00 AM = 540)
-- Only schedule between ${CAL_START_HOUR * 60} (${CAL_START_HOUR}AM) and ${CAL_END_HOUR * 60} (${CAL_END_HOUR === 12 ? "12PM" : `${CAL_END_HOUR - 12}PM`})
-- Never overlap with existing busy blocks
-- Higher importance/urgency tasks get earlier and longer slots
-- Apply human-centered scheduling: do not front-load everything at the start of the day or week; spread work realistically, include buffer time for travel/context-switching, and avoid common meal windows (roughly 12:00-1:00 PM and 6:00-7:00 PM) unless necessary.
-- Provide at most 6 suggestions total
-- Add sleeping hours at the highest priority as a default on the calendar for the entire week
-- Fill suggestions on the calendar for the entire week based on the prioritized tasks and the busy blocks
-
-Current busy blocks this week:
-${JSON.stringify(busySummary)}
-
-Prioritized tasks (importance 1-4, urgency 1-4):
-${JSON.stringify(prioritized)}
-`;
+      const prompt = buildCalendarSchedulingPrompt({
+        calStartHour: CAL_START_HOUR,
+        calEndHour: CAL_END_HOUR,
+        busySummary,
+        prioritized,
+      });
 
       const parsed = await Promise.race([
         fetchGroqJson(prompt, apiKey),
@@ -1070,12 +1032,7 @@ ${JSON.stringify(prioritized)}
     setIsScoring(true);
     setStatus("Scoring task importance with Groq...");
     try {
-      const prompt = `
-Return strict JSON: {"scores":[{"taskId":"string","importance":1-4,"reason":"short"}]}
-Goals: ${JSON.stringify(goals)}
-Tasks: ${JSON.stringify(tasks.map((t) => ({ id: t.id, title: t.title, due: t.due, notes: t.notes })))}
-Rules: Score importance 1-4 by goal alignment. 4=strongly aligned this week; 1=weak/none. Include every task ID.
-`;
+      const prompt = buildImportanceScoringPrompt(goals, tasks);
       const parsed = await fetchGroqJson(prompt, apiKey);
       const map = new Map((parsed.scores || []).map((s) => [s.taskId, Number(s.importance)]));
       setTasks((prev) =>
@@ -1105,11 +1062,7 @@ Rules: Score importance 1-4 by goal alignment. 4=strongly aligned this week; 1=w
 
     setIsSuggesting(true);
     try {
-      const prompt = `
-You are a productivity coach. Return strict JSON: {"suggestion":"2-4 short actionable sentences with alerts if needed"}
-Goals with weekly hours: ${JSON.stringify(goals)}
-Tasks with urgency and importance: ${JSON.stringify(scoredTasks.map((t) => ({ title: t.title, due: t.due, urgency: t.urgency, importance: t.importance, quadrant: t.quadrant })))}
-`;
+      const prompt = buildCoachSuggestionPrompt(goals, scoredTasks);
       const parsed = await fetchGroqJson(prompt, apiKey);
       setSuggestionText(parsed.suggestion || fallback);
     } catch (err) {
