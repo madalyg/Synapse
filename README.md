@@ -1,12 +1,16 @@
 # Synapse
 
-AI-powered task prioritization for busy students and professionals — built at **Hack the Future 2026**.
+Synapse is an AI-powered task prioritization web app that bridges the intuitive gap between your daily to-do list and your long-term goals. Visit [the web app here.](https://synapse3-topaz.vercel.app/)
 
-**Live app:** [synapse3-topaz.vercel.app](https://synapse3-topaz.vercel.app/)
+Users begin by entering their weekly goals along with the number of hours they want to dedicate to each. Synapse then pulls in tasks directly from Google Calendar and Google Tasks—or lets users enter them manually—and automatically scores each task across two dimensions: urgency, calculated from the task's due date, and importance, determined by an AI-powered alignment check against the user's stated goals. Each task is assigned a vector and placed into one of the four quadrants of a visual Eisenhower Matrix, naturally training users to learn an intuitive mental method for task prioritization over time.
 
-Synapse bridges daily to-dos and **weekly goals**: tasks from Google Calendar/Tasks (or manual entry) get **urgency** from due dates and **importance** from Groq JSON scoring, then land on a live **Eisenhower Matrix**. A Groq coach suggests alerts; optional calendar slot proposals respect busy blocks with local fallbacks.
+Based on a user’s goal-oriented task prioritization matrix, a Groq-powered AI coach generates personalized suggestions and alerts — flagging tasks that don't align with any of your goals, warning when your time allocations fall short of what a goal requires, and celebrating when your week is well-structured.
 
-## LLM integration (for reviewers)
+Automated adjustments are made to calendar scheduling based on every task's relevancy to a user's goals and schedule availability. Users can review prioritization suggestions and accept, reject, or edit schedule adjustments based on intelligent feedback—placing the user in executive control while letting AI assist with clearing mental clutter and enhancing available time all while considering long term goals.
+
+Built at **Hack the Future 2026**. Technical write-up of the Groq integration: [docs/llm-integration.md](./docs/llm-integration.md).
+
+## LLM integration
 
 Structured Groq calls (not a chat wrapper): system prompt, temperature `0.2`, schema-in-user-message, fence stripping, validation, timeouts.
 
@@ -32,9 +36,9 @@ npm run test:llm   # JSON parse / fence regression
 
 ## Notes
 
-- Without Google OAuth, mock tasks load; you can add tasks manually.
-- Without Groq, local importance heuristics and coach copy still run.
-- Urgency is always computed in code from due dates.
+- If Google is not connected, mock tasks are preloaded and manual tasks can be added.
+- Urgency score is derived from due date.
+- Importance score is generated from goal alignment via Groq, with a local fallback if Groq is unavailable.
 
 ## Stack
 
